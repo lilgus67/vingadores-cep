@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vingadores CEP</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h1>⚽ VINGADORES CEP</h1>
+            <p>Futebol 7 • Temporada 2026</p>
+        </div>
+    </header>
+
+    <main id="app-content">
+    </main>
+
+    <nav class="bottom-nav">
+        <button onclick="navigate('home')" class="nav-item active" id="nav-home">
+            <i class="fas fa-home"></i>
+            <span>Início</span>
+        </button>
+        <button onclick="navigate('lineup')" class="nav-item" id="nav-lineup">
+            <i class="fas fa-users"></i>
+            <span>Formação</span>
+        </button>
+        <button onclick="navigate('squad')" class="nav-item" id="nav-squad">
+            <i class="fas fa-user-plus"></i>
+            <span>Elenco</span>
+        </button>
+        <button onclick="navigate('history')" class="nav-item" id="nav-history">
+            <i class="fas fa-history"></i>
+            <span>Histórico</span>
+        </button>
+        <button onclick="navigate('stats')" class="nav-item" id="nav-stats">
+            <i class="fas fa-trophy"></i>
+            <span>Stats</span>
+        </button>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
