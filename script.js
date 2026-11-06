@@ -34,7 +34,7 @@ let defaultPlayers = [
     
     // === RESERVAS ===
     { id: 8, name: 'Carioca', position: 'Zagueiro', photo: 'fotos/carioca.jpg', goals: 1, assists: 0, games: 1, starter: false, fieldX: 50, fieldY: 70, isCaptain: false },
-    { id: 9, name: 'Murilo', position: 'Meia', photo: 'fotos/murilo.jpg', goals: 1, assists: 0, games: 2, starter: false, fieldX: 50, fieldY: 45, isCaptain: false },
+    { id: 9, name: 'Murilo', position: 'Meia', photo: 'fotos/murilo.jpg', goals: 1, assists: 6, games: 2, starter: false, fieldX: 50, fieldY: 45, isCaptain: false },
     { id: 10, name: 'Frois', position: 'Atacante', photo: 'fotos/frois.jpg', goals: 0, assists: 0, games: 3, starter: false, fieldX: 50, fieldY: 18, isCaptain: false },
     { id: 11, name: 'Renato', position: 'Atacante', photo: 'fotos/renato.jpg', goals: 1, assists: 6, games: 1, starter: false, fieldX: 50, fieldY: 18, isCaptain: false },
     { id: 12, name: 'Uriel', position: 'Meia', photo: 'fotos/uriel.jpg', goals: 1, assists: 0, games: 1, starter: false, fieldX: 50, fieldY: 45, isCaptain: false }
