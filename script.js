@@ -2,16 +2,16 @@
 var isAdmin = window.location.href.indexOf('admin=vingadores2026') !== -1;
 
 let matchData = {
-    opponent: 'Time Adversário',
-    date: '2026-11-15',
-    time: '20:00',
-    location: 'Campo CEP'
+    opponent: 'Indefinido',
+    date: 'Indefinido',
+    time: 'Indefinido',
+    location: 'Indefinido'
 };
 
 let teamStats = {
-    wins: 0,
+    wins: 2,
     draws: 0,
-    losses: 0
+    losses: 1
 };
 
 let coach = {
@@ -86,8 +86,7 @@ function renderHome() {
         return;
     }
 
-    var totalGoals = 0;
-    for (var i = 0; i < players.length; i++) totalGoals += players[i].goals;
+       var totalGoals = 41;
     var totalGames = 0;
     for (var i = 0; i < players.length; i++) {
         if (players[i].games > totalGames) totalGames = players[i].games;
