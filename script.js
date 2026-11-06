@@ -43,7 +43,38 @@ let defaultPlayers = [
 let players = defaultPlayers;
 localStorage.setItem('players', JSON.stringify(defaultPlayers));
 
-let matchHistory = JSON.parse(localStorage.getItem('matchHistory')) || [];
+  let matchHistory = [
+    {
+        id: 1,
+        opponent: 'Sabores da Grama',
+        date: '2026-09-22',
+        time: '16:30',
+        location: 'Ecosoccer',
+        goalsFor: 8,
+        goalsAgainst: 10,
+        result: 'loss'
+    },
+    {
+        id: 2,
+        opponent: 'Comando Egito',
+        date: '2026-10-17',
+        time: '17:30',
+        location: 'América Sports',
+        goalsFor: 9,
+        goalsAgainst: 4,
+        result: 'win'
+    },
+    {
+        id: 3,
+        opponent: 'Fúria FC',
+        date: '2026-11-02',
+        time: '16:00',
+        location: 'Ecosoccer',
+        goalsFor: 24,
+        goalsAgainst: 4,
+        result: 'win'
+    }
+];
 
 const content = document.getElementById('app-content');
 
