@@ -19,7 +19,6 @@ let coach = JSON.parse(localStorage.getItem('coach')) || {
     fieldY: 92
 };
 
-// Se não tiver jogadores salvos, usa os padrão
 let defaultPlayers = [
     { id: 1, name: 'Capitão', position: 'Meia', photo: '👑', goals: 12, assists: 8, games: 15, starter: true, fieldX: 30, fieldY: 45, isCaptain: true },
     { id: 2, name: 'Jogador 2', position: 'Meia', photo: '⚡', goals: 15, assists: 5, games: 14, starter: true, fieldX: 70, fieldY: 45, isCaptain: false },
@@ -39,6 +38,55 @@ if (!players || players.length === 0) {
 let matchHistory = JSON.parse(localStorage.getItem('matchHistory')) || [];
 
 const content = document.getElementById('app-content');
+
+// 🔥 FUNÇÃO MÁGICA: Organiza os jogadores na formação 3-2-1 automaticamente
+function organizeFormation() {
+    const starters = players.filter(function(p) { return p.starter; });
+    
+    // Separa por posição
+    var gk = starters.filter(function(p) { return p.position.toLowerCase().includes('goleiro'); });
+    var zagueiros = starters.filter(function(p) { return p.position.toLowerCase().includes('zagueiro') || p.position.toLowerCase().includes('defesa'); });
+    var meias = starters.filter(function(p) { return p.position.toLowerCase().includes('meia') || p.position.toLowerCase().includes('medio'); });
+    var atacantes = starters.filter(function(p) { return p.position.toLowerCase().includes('atacante') || p.position.toLowerCase().includes('ponta') || p.position.toLowerCase().includes('atac'); });
+    
+    // Posições fixas para formação 3-2-1
+    // Goleiro: centro, fundo
+    gk.forEach(function(p, i) {
+        p.fieldX = 50;
+        p.fieldY = 88;
+    });
+    
+    // 3 Zagueiros: linha horizontal na defesa
+    var zPositions = [20, 50, 80];
+    zagueiros.forEach(function(p, i) {
+        p.fieldX = zPositions[i] || 50;
+        p.fieldY = 70;
+    });
+    
+    // 2 Meias: linha horizontal no meio
+    var mPositions = [30, 70];
+    meias.forEach(function(p, i) {
+        p.fieldX = mPositions[i] || 50;
+        p.fieldY = 45;
+    });
+    
+    // 1 Atacante: centro, frente
+    atacantes.forEach(function(p, i) {
+        p.fieldX = 50;
+        p.fieldY = 18;
+    });
+    
+    // Se sobrar jogador sem posição definida, coloca no meio
+    var defined = [].concat(gk, zagueiros, meias, atacantes);
+    starters.forEach(function(p) {
+        if (defined.indexOf(p) === -1) {
+            p.fieldX = 50;
+            p.fieldY = 50;
+        }
+    });
+    
+    saveData();
+}
 
 function renderPhoto(photo, isCoach) {
     if (!photo) return isCoach ? '👔' : '⚽';
@@ -74,7 +122,6 @@ function navigate(page) {
 }
 
 function renderHome() {
-    // Proteção: se não tiver jogadores, mostra mensagem
     if (!players || players.length === 0) {
         content.innerHTML = '<div class="card"><div class="card-title">Bem-vindo!</div><p style="text-align:center;color:#9ca3af;">Nenhum jogador cadastrado ainda.<br>Vá em <strong>Elenco</strong> para adicionar jogadores!</p></div>';
         return;
@@ -87,7 +134,6 @@ function renderHome() {
         if (players[i].games > totalGames) totalGames = players[i].games;
     }
     
-    // Proteção para topScorer
     var topScorer = players[0];
     for (var i = 1; i < players.length; i++) {
         if (players[i].goals > topScorer.goals) topScorer = players[i];
@@ -122,19 +168,35 @@ function renderHome() {
     content.innerHTML = html;
 }
 
+// 🔥 FORMAÇÃO ORGANIZADA AUTOMATICAMENTE
 function renderLineup() {
+    // Organiza os jogadores antes de mostrar
+    organizeFormation();
+    
     var starters = players.filter(function(p) { return p.starter; });
     var html = '<h2 class="section-title">Formação Oficial</h2><div class="formation-container"><div class="formation-title">3-2-1</div><div class="field"><div class="field-area-top"></div><div class="field-area-bottom"></div><div class="field-goal-top"></div><div class="field-goal-bottom"></div><div class="field-penalty-top"></div><div class="field-penalty-bottom"></div>';
     
+    // Técnico no canto inferior esquerdo
     html += '<div class="field-player" style="left:' + coach.fieldX + '%;top:' + coach.fieldY + '%;" onclick="openEditCoachModal()"><div class="player-circle coach">' + renderPhoto(coach.photo, true) + '</div><div class="player-name-field coach-name">👔 ' + coach.name + '</div><div class="player-position-field">TÉCNICO</div></div>';
     
-    starters.forEach(function(p) {
-        var isGK = p.position.toLowerCase().includes('goleiro');
-        var isCaptain = p.isCaptain;
-        var circleClass = 'player-circle';
-        if (isGK) circleClass += ' gk';
-        if (isCaptain) circleClass += ' captain';
-        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="' + circleClass + '">' + renderPhoto(p.photo) + renderCaptainBadge(isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">' + p.position + '</div></div>';
+    // Goleiro (fundo, centro)
+    starters.filter(function(p) { return p.position.toLowerCase().includes('goleiro'); }).forEach(function(p) {
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle gk">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">GOL</div></div>';
+    });
+    
+    // Zagueiros (linha de defesa)
+    starters.filter(function(p) { return p.position.toLowerCase().includes('zagueiro') || p.position.toLowerCase().includes('defesa'); }).forEach(function(p) {
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">ZAG</div></div>';
+    });
+    
+    // Meias (meio do campo)
+    starters.filter(function(p) { return p.position.toLowerCase().includes('meia') || p.position.toLowerCase().includes('medio'); }).forEach(function(p) {
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">MEI</div></div>';
+    });
+    
+    // Atacantes (frente)
+    starters.filter(function(p) { return p.position.toLowerCase().includes('atacante') || p.position.toLowerCase().includes('ponta') || p.position.toLowerCase().includes('atac'); }).forEach(function(p) {
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">ATA</div></div>';
     });
     
     html += '</div><div class="formation-legend"><div class="legend-item"><div class="legend-dot outfield"></div><span>Linha</span></div><div class="legend-item"><div class="legend-dot gk"></div><span>Goleiro</span></div><div class="legend-item"><div class="legend-dot coach"></div><span>Técnico</span></div><div class="legend-item"><div class="captain-badge" style="width:12px;height:12px;font-size:0.5rem;">C</div><span>Capitão</span></div></div></div>';
@@ -229,7 +291,7 @@ function openAddPlayerModal() {
     var modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'addPlayerModal';
-    modal.innerHTML = '<div class="modal-content"><h3 class="modal-title">Adicionar Jogador</h3><div class="form-group"><label>Nome</label><input type="text" id="newName" placeholder="Nome do jogador"></div><div class="form-group"><label>Posição</label><input type="text" id="newPosition" placeholder="Ex: Atacante, Goleiro"></div><div class="form-group"><label>Foto ou Emoji</label><input type="text" id="newPhoto" placeholder="Ex: fotos/joao.jpg"></div><div class="form-group"><label>É titular?</label><select id="newStarter"><option value="true">Sim</option><option value="false">Não</option></select></div><div class="form-group"><label>É o capitão?</label><select id="newIsCaptain"><option value="false">Não</option><option value="true">Sim</option></select></div><div class="form-buttons"><button class="btn btn-secondary" onclick="closeModal(\'addPlayerModal\')">Cancelar</button><button class="btn btn-primary" onclick="addPlayer()">Adicionar</button></div></div>';
+    modal.innerHTML = '<div class="modal-content"><h3 class="modal-title">Adicionar Jogador</h3><div class="form-group"><label>Nome</label><input type="text" id="newName" placeholder="Nome do jogador"></div><div class="form-group"><label>Posição</label><input type="text" id="newPosition" placeholder="Ex: Atacante, Goleiro, Zagueiro, Meia"></div><div class="form-group"><label>Foto ou Emoji</label><input type="text" id="newPhoto" placeholder="Ex: fotos/joao.jpg"></div><div class="form-group"><label>É titular?</label><select id="newStarter"><option value="true">Sim</option><option value="false">Não</option></select></div><div class="form-group"><label>É o capitão?</label><select id="newIsCaptain"><option value="false">Não</option><option value="true">Sim</option></select></div><div class="form-buttons"><button class="btn btn-secondary" onclick="closeModal(\'addPlayerModal\')">Cancelar</button><button class="btn btn-primary" onclick="addPlayer()">Adicionar</button></div></div>';
     document.body.appendChild(modal);
 }
 
