@@ -33,11 +33,8 @@ let defaultPlayers = [
     { id: 7, name: 'Jogador 7', position: 'Atacante', photo: '⭐', goals: 5, assists: 3, games: 10, starter: true, fieldX: 50, fieldY: 18, isCaptain: false }
 ];
 
-let players = JSON.parse(localStorage.getItem('players'));
-if (!players || players.length === 0) {
-    players = defaultPlayers;
-    localStorage.setItem('players', JSON.stringify(defaultPlayers));
-}
+let players = defaultPlayers;
+localStorage.setItem('players', JSON.stringify(defaultPlayers));
 
 let matchHistory = JSON.parse(localStorage.getItem('matchHistory')) || [];
 
