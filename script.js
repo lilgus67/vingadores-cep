@@ -1,3 +1,7 @@
+// 🔐 VERIFICA SE É O DONO DO SITE (você)
+// Para editar, acesse: https://lilgus67.github.io/vingadores-cep/?admin=seu_codigo_secreto
+var isAdmin = window.location.href.indexOf('admin=vingadores2026') !== -1;
+
 let matchData = JSON.parse(localStorage.getItem('matchData')) || {
     opponent: 'Time Adversário',
     date: '2026-11-08',
@@ -39,53 +43,12 @@ let matchHistory = JSON.parse(localStorage.getItem('matchHistory')) || [];
 
 const content = document.getElementById('app-content');
 
-// 🔥 FUNÇÃO MÁGICA: Organiza os jogadores na formação 3-2-1 automaticamente
-function organizeFormation() {
-    const starters = players.filter(function(p) { return p.starter; });
-    
-    // Separa por posição
-    var gk = starters.filter(function(p) { return p.position.toLowerCase().includes('goleiro'); });
-    var zagueiros = starters.filter(function(p) { return p.position.toLowerCase().includes('zagueiro') || p.position.toLowerCase().includes('defesa'); });
-    var meias = starters.filter(function(p) { return p.position.toLowerCase().includes('meia') || p.position.toLowerCase().includes('medio'); });
-    var atacantes = starters.filter(function(p) { return p.position.toLowerCase().includes('atacante') || p.position.toLowerCase().includes('ponta') || p.position.toLowerCase().includes('atac'); });
-    
-    // Posições fixas para formação 3-2-1
-    // Goleiro: centro, fundo
-    gk.forEach(function(p, i) {
-        p.fieldX = 50;
-        p.fieldY = 88;
-    });
-    
-    // 3 Zagueiros: linha horizontal na defesa
-    var zPositions = [20, 50, 80];
-    zagueiros.forEach(function(p, i) {
-        p.fieldX = zPositions[i] || 50;
-        p.fieldY = 70;
-    });
-    
-    // 2 Meias: linha horizontal no meio
-    var mPositions = [30, 70];
-    meias.forEach(function(p, i) {
-        p.fieldX = mPositions[i] || 50;
-        p.fieldY = 45;
-    });
-    
-    // 1 Atacante: centro, frente
-    atacantes.forEach(function(p, i) {
-        p.fieldX = 50;
-        p.fieldY = 18;
-    });
-    
-    // Se sobrar jogador sem posição definida, coloca no meio
-    var defined = [].concat(gk, zagueiros, meias, atacantes);
-    starters.forEach(function(p) {
-        if (defined.indexOf(p) === -1) {
-            p.fieldX = 50;
-            p.fieldY = 50;
-        }
-    });
-    
-    saveData();
+// 🔐 Função para mostrar/ocultar botões de edição
+function editButton(html, onclick) {
+    if (isAdmin) {
+        return html.replace('onclick="', 'onclick="' + onclick + '"');
+    }
+    return '';
 }
 
 function renderPhoto(photo, isCoach) {
@@ -123,7 +86,7 @@ function navigate(page) {
 
 function renderHome() {
     if (!players || players.length === 0) {
-        content.innerHTML = '<div class="card"><div class="card-title">Bem-vindo!</div><p style="text-align:center;color:#9ca3af;">Nenhum jogador cadastrado ainda.<br>Vá em <strong>Elenco</strong> para adicionar jogadores!</p></div>';
+        content.innerHTML = '<div class="card"><div class="card-title">Bem-vindo!</div><p style="text-align:center;color:#9ca3af;">Nenhum jogador cadastrado ainda.</p></div>';
         return;
     }
 
@@ -152,11 +115,17 @@ function renderHome() {
     var matchDate = new Date(matchData.date + 'T' + matchData.time);
     var dateStr = matchDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-    var html = '<div class="card next-match"><div class="card-title">Próxima Partida</div><div class="match-info"><div class="match-teams"><div class="match-vs">Vingadores CEP vs ' + matchData.opponent + '</div><div class="match-date"><i class="fas fa-calendar"></i> ' + dateStr + ' às ' + matchData.time + '<br><i class="fas fa-map-marker-alt"></i> ' + matchData.location + '</div></div><button class="match-edit" onclick="openEditModal()"><i class="fas fa-edit"></i> Editar</button></div></div>';
+    // Botão de editar próxima partida (só aparece para admin)
+    var editMatchBtn = isAdmin ? '<button class="match-edit" onclick="openEditModal()"><i class="fas fa-edit"></i> Editar</button>' : '';
+
+    var html = '<div class="card next-match"><div class="card-title">Próxima Partida</div><div class="match-info"><div class="match-teams"><div class="match-vs">Vingadores CEP vs ' + matchData.opponent + '</div><div class="match-date"><i class="fas fa-calendar"></i> ' + dateStr + ' às ' + matchData.time + '<br><i class="fas fa-map-marker-alt"></i> ' + matchData.location + '</div></div>' + editMatchBtn + '</div></div>';
     
     html += '<div class="card"><div class="card-title">Estatísticas do Time</div><div class="stats-grid"><div class="stat-box"><div class="stat-number">' + totalGoals + '</div><div class="stat-label">Gols</div></div><div class="stat-box"><div class="stat-number">' + totalGames + '</div><div class="stat-label">Jogos</div></div><div class="stat-box"><div class="stat-number" style="background:linear-gradient(135deg,#10b981,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">' + wins + '</div><div class="stat-label">Vitórias</div></div><div class="stat-box"><div class="stat-number">' + players.length + '</div><div class="stat-label">Jogadores</div></div></div></div>';
     
-    html += '<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">Aproveitamento <button class="match-edit" onclick="openEditStatsModal()" style="font-size:0.7rem;padding:5px 10px;"><i class="fas fa-edit"></i> Editar</button></div><div class="stats-grid" style="grid-template-columns:repeat(3,1fr);"><div class="stat-box" style="border-color:#10b981;"><div class="stat-number" style="background:linear-gradient(135deg,#10b981,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;">' + wins + '</div><div class="stat-label">Vitórias</div></div><div class="stat-box" style="border-color:#9ca3af;"><div class="stat-number" style="background:linear-gradient(135deg,#9ca3af,#6b7280);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;">' + draws + '</div><div class="stat-label">Empates</div></div><div class="stat-box" style="border-color:#ef4444;"><div class="stat-number" style="background:linear-gradient(135deg,#ef4444,#dc2626);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;">' + losses + '</div><div class="stat-label">Derrotas</div></div></div></div>';
+    // Botão de editar aproveitamento (só aparece para admin)
+    var editStatsBtn = isAdmin ? '<button class="match-edit" onclick="openEditStatsModal()" style="font-size:0.7rem;padding:5px 10px;"><i class="fas fa-edit"></i> Editar</button>' : '';
+    
+    html += '<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">Aproveitamento ' + editStatsBtn + '</div><div class="stats-grid" style="grid-template-columns:repeat(3,1fr);"><div class="stat-box" style="border-color:#10b981;"><div class="stat-number" style="background:linear-gradient(135deg,#10b981,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;">' + wins + '</div><div class="stat-label">Vitórias</div></div><div class="stat-box" style="border-color:#9ca3af;"><div class="stat-number" style="background:linear-gradient(135deg,#9ca3af,#6b7280);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;">' + draws + '</div><div class="stat-label">Empates</div></div><div class="stat-box" style="border-color:#ef4444;"><div class="stat-number" style="background:linear-gradient(135deg,#ef4444,#dc2626);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;">' + losses + '</div><div class="stat-label">Derrotas</div></div></div></div>';
     
     html += '<div class="card"><div class="card-title">Artilheiro do Time</div><div class="top-scorer"><div class="scorer-photo">' + renderPhoto(topScorer.photo) + '</div><div class="scorer-info"><div class="scorer-name">' + topScorer.name + renderCaptainBadge(topScorer.isCaptain, 'badge') + '</div><div class="scorer-goals"><i class="fas fa-futbol"></i> ' + topScorer.goals + ' gols em ' + topScorer.games + ' jogos</div></div></div></div>';
     
@@ -165,38 +134,58 @@ function renderHome() {
     if (captain) {
         html += '<div class="card" style="border:2px solid #f4d03f;"><div class="card-title">🎯 Capitão do Time</div><div class="top-scorer"><div class="scorer-photo captain-photo">' + renderPhoto(captain.photo) + '</div><div class="scorer-info"><div class="scorer-name">' + captain.name + ' ' + renderCaptainBadge(true, 'label') + '</div><div class="scorer-goals"><i class="fas fa-shield-alt"></i> ' + captain.position + ' • ' + captain.games + ' jogos</div></div></div></div>';
     }
+    
+    // Aviso de admin no topo (só você vê)
+    if (isAdmin) {
+        html = '<div style="background:#10b981;color:#000;padding:10px;text-align:center;font-weight:bold;border-radius:8px;margin-bottom:15px;">🔓 MODO ADMIN ATIVADO - Você pode editar tudo</div>' + html;
+    }
+    
     content.innerHTML = html;
 }
 
-// 🔥 FORMAÇÃO ORGANIZADA AUTOMATICAMENTE
-function renderLineup() {
-    // Organiza os jogadores antes de mostrar
-    organizeFormation();
+function organizeFormation() {
+    const starters = players.filter(function(p) { return p.starter; });
+    var gk = starters.filter(function(p) { return p.position.toLowerCase().includes('goleiro'); });
+    var zagueiros = starters.filter(function(p) { return p.position.toLowerCase().includes('zagueiro') || p.position.toLowerCase().includes('defesa'); });
+    var meias = starters.filter(function(p) { return p.position.toLowerCase().includes('meia') || p.position.toLowerCase().includes('medio'); });
+    var atacantes = starters.filter(function(p) { return p.position.toLowerCase().includes('atacante') || p.position.toLowerCase().includes('ponta') || p.position.toLowerCase().includes('atac'); });
     
+    gk.forEach(function(p) { p.fieldX = 50; p.fieldY = 88; });
+    var zPositions = [20, 50, 80];
+    zagueiros.forEach(function(p, i) { p.fieldX = zPositions[i] || 50; p.fieldY = 70; });
+    var mPositions = [30, 70];
+    meias.forEach(function(p, i) { p.fieldX = mPositions[i] || 50; p.fieldY = 45; });
+    atacantes.forEach(function(p) { p.fieldX = 50; p.fieldY = 18; });
+    
+    saveData();
+}
+
+function renderLineup() {
+    organizeFormation();
     var starters = players.filter(function(p) { return p.starter; });
     var html = '<h2 class="section-title">Formação Oficial</h2><div class="formation-container"><div class="formation-title">3-2-1</div><div class="field"><div class="field-area-top"></div><div class="field-area-bottom"></div><div class="field-goal-top"></div><div class="field-goal-bottom"></div><div class="field-penalty-top"></div><div class="field-penalty-bottom"></div>';
     
-    // Técnico no canto inferior esquerdo
-    html += '<div class="field-player" style="left:' + coach.fieldX + '%;top:' + coach.fieldY + '%;" onclick="openEditCoachModal()"><div class="player-circle coach">' + renderPhoto(coach.photo, true) + '</div><div class="player-name-field coach-name">👔 ' + coach.name + '</div><div class="player-position-field">TÉCNICO</div></div>';
+    var coachClick = isAdmin ? 'onclick="openEditCoachModal()"' : '';
+    html += '<div class="field-player" style="left:' + coach.fieldX + '%;top:' + coach.fieldY + '%;" ' + coachClick + '><div class="player-circle coach">' + renderPhoto(coach.photo, true) + '</div><div class="player-name-field coach-name">👔 ' + coach.name + '</div><div class="player-position-field">TÉCNICO</div></div>';
     
-    // Goleiro (fundo, centro)
     starters.filter(function(p) { return p.position.toLowerCase().includes('goleiro'); }).forEach(function(p) {
-        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle gk">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">GOL</div></div>';
+        var click = isAdmin ? 'onclick="openEditPlayerModal(' + p.id + ')"' : '';
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" ' + click + '><div class="player-circle gk">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">GOL</div></div>';
     });
     
-    // Zagueiros (linha de defesa)
     starters.filter(function(p) { return p.position.toLowerCase().includes('zagueiro') || p.position.toLowerCase().includes('defesa'); }).forEach(function(p) {
-        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">ZAG</div></div>';
+        var click = isAdmin ? 'onclick="openEditPlayerModal(' + p.id + ')"' : '';
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" ' + click + '><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">ZAG</div></div>';
     });
     
-    // Meias (meio do campo)
     starters.filter(function(p) { return p.position.toLowerCase().includes('meia') || p.position.toLowerCase().includes('medio'); }).forEach(function(p) {
-        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">MEI</div></div>';
+        var click = isAdmin ? 'onclick="openEditPlayerModal(' + p.id + ')"' : '';
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" ' + click + '><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">MEI</div></div>';
     });
     
-    // Atacantes (frente)
     starters.filter(function(p) { return p.position.toLowerCase().includes('atacante') || p.position.toLowerCase().includes('ponta') || p.position.toLowerCase().includes('atac'); }).forEach(function(p) {
-        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" onclick="openEditPlayerModal(' + p.id + ')"><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">ATA</div></div>';
+        var click = isAdmin ? 'onclick="openEditPlayerModal(' + p.id + ')"' : '';
+        html += '<div class="field-player" style="left:' + p.fieldX + '%;top:' + p.fieldY + '%;" ' + click + '><div class="player-circle">' + renderPhoto(p.photo) + renderCaptainBadge(p.isCaptain, 'field') + '</div><div class="player-name-field">' + p.name + '</div><div class="player-position-field">ATA</div></div>';
     });
     
     html += '</div><div class="formation-legend"><div class="legend-item"><div class="legend-dot outfield"></div><span>Linha</span></div><div class="legend-item"><div class="legend-dot gk"></div><span>Goleiro</span></div><div class="legend-item"><div class="legend-dot coach"></div><span>Técnico</span></div><div class="legend-item"><div class="captain-badge" style="width:12px;height:12px;font-size:0.5rem;">C</div><span>Capitão</span></div></div></div>';
@@ -204,7 +193,10 @@ function renderLineup() {
 }
 
 function renderSquad() {
-    var html = '<h2 class="section-title">Elenco Completo</h2><button class="add-player-btn" onclick="openAddPlayerModal()"><i class="fas fa-plus"></i> Adicionar Jogador</button>';
+    // Botão de adicionar jogador (só aparece para admin)
+    var addBtn = isAdmin ? '<button class="add-player-btn" onclick="openAddPlayerModal()"><i class="fas fa-plus"></i> Adicionar Jogador</button>' : '';
+    
+    var html = '<h2 class="section-title">Elenco Completo</h2>' + addBtn;
     
     if (!players || players.length === 0) {
         html += '<div class="card" style="text-align:center;color:#9ca3af;">Nenhum jogador cadastrado ainda.</div>';
@@ -213,16 +205,27 @@ function renderSquad() {
             var badge = p.starter ? '<span style="color:#f4d03f;font-size:0.7rem;">★ TITULAR</span>' : '<span style="color:#9ca3af;font-size:0.7rem;">RESERVA</span>';
             var captainBadge = renderCaptainBadge(p.isCaptain, 'badge');
             var photoClass = p.isCaptain ? 'player-photo captain-photo' : 'player-photo';
-            html += '<div class="card player-card"><div class="' + photoClass + '">' + renderPhoto(p.photo) + '</div><div class="player-info"><div class="player-name">' + p.name + ' ' + captainBadge + ' ' + badge + '</div><div class="player-position">' + p.position + '</div></div><div class="player-stats-mini"><div><strong>' + p.goals + '</strong> G</div><div><strong>' + p.assists + '</strong> A</div><div><strong>' + p.games + '</strong> J</div></div><div class="player-actions"><button class="player-edit-btn" onclick="openEditPlayerModal(' + p.id + ')" title="Editar"><i class="fas fa-edit"></i></button><button class="player-delete-btn" onclick="deletePlayer(' + p.id + ')" title="Excluir"><i class="fas fa-trash"></i></button></div></div>';
+            
+            // Botões de editar/excluir (só aparecem para admin)
+            var actionBtns = '';
+            if (isAdmin) {
+                actionBtns = '<div class="player-actions"><button class="player-edit-btn" onclick="openEditPlayerModal(' + p.id + ')" title="Editar"><i class="fas fa-edit"></i></button><button class="player-delete-btn" onclick="deletePlayer(' + p.id + ')" title="Excluir"><i class="fas fa-trash"></i></button></div>';
+            }
+            
+            html += '<div class="card player-card"><div class="' + photoClass + '">' + renderPhoto(p.photo) + '</div><div class="player-info"><div class="player-name">' + p.name + ' ' + captainBadge + ' ' + badge + '</div><div class="player-position">' + p.position + '</div></div><div class="player-stats-mini"><div><strong>' + p.goals + '</strong> G</div><div><strong>' + p.assists + '</strong> A</div><div><strong>' + p.games + '</strong> J</div></div>' + actionBtns + '</div>';
         });
     }
     
-    html += '<div class="coach-section"><h2 class="section-title">👔 Comissão Técnica</h2><div class="card player-card"><div class="player-photo coach-photo">' + renderPhoto(coach.photo, true) + '</div><div class="player-info"><div class="player-name">' + coach.name + '</div><div class="player-position">TÉCNICO PRINCIPAL</div></div><div class="player-actions"><button class="player-edit-btn" onclick="openEditCoachModal()" title="Editar Técnico"><i class="fas fa-edit"></i></button></div></div></div>';
+    var coachEditBtn = isAdmin ? '<div class="player-actions"><button class="player-edit-btn" onclick="openEditCoachModal()" title="Editar Técnico"><i class="fas fa-edit"></i></button></div>' : '';
+    
+    html += '<div class="coach-section"><h2 class="section-title">👔 Comissão Técnica</h2><div class="card player-card"><div class="player-photo coach-photo">' + renderPhoto(coach.photo, true) + '</div><div class="player-info"><div class="player-name">' + coach.name + '</div><div class="player-position">TÉCNICO PRINCIPAL</div></div>' + coachEditBtn + '</div></div>';
     content.innerHTML = html;
 }
 
 function renderHistory() {
-    var html = '<h2 class="section-title">Histórico de Partidas</h2><button class="add-player-btn" onclick="openAddMatchModal()"><i class="fas fa-plus"></i> Registrar Partida</button>';
+    var addBtn = isAdmin ? '<button class="add-player-btn" onclick="openAddMatchModal()"><i class="fas fa-plus"></i> Registrar Partida</button>' : '';
+    var html = '<h2 class="section-title">Histórico de Partidas</h2>' + addBtn;
+    
     if (!matchHistory || matchHistory.length === 0) {
         html += '<div class="card" style="text-align:center;color:#9ca3af;">Nenhuma partida registrada ainda.</div>';
     } else {
@@ -252,7 +255,10 @@ function renderStats() {
     content.innerHTML = html;
 }
 
+// ============ MODAIS (só funcionam para admin) ============
+
 function openEditModal() {
+    if (!isAdmin) return;
     var modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'editModal';
@@ -261,6 +267,7 @@ function openEditModal() {
 }
 
 function saveMatch() {
+    if (!isAdmin) return;
     matchData.opponent = document.getElementById('editOpponent').value;
     matchData.date = document.getElementById('editDate').value;
     matchData.time = document.getElementById('editTime').value;
@@ -271,6 +278,7 @@ function saveMatch() {
 }
 
 function openEditStatsModal() {
+    if (!isAdmin) return;
     var modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'editStatsModal';
@@ -279,6 +287,7 @@ function openEditStatsModal() {
 }
 
 function saveTeamStats() {
+    if (!isAdmin) return;
     teamStats.wins = parseInt(document.getElementById('statWins').value) || 0;
     teamStats.draws = parseInt(document.getElementById('statDraws').value) || 0;
     teamStats.losses = parseInt(document.getElementById('statLosses').value) || 0;
@@ -288,6 +297,7 @@ function saveTeamStats() {
 }
 
 function openAddPlayerModal() {
+    if (!isAdmin) return;
     var modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'addPlayerModal';
@@ -296,6 +306,7 @@ function openAddPlayerModal() {
 }
 
 function addPlayer() {
+    if (!isAdmin) return;
     var name = document.getElementById('newName').value;
     var position = document.getElementById('newPosition').value;
     var photo = document.getElementById('newPhoto').value || '⚽';
@@ -316,6 +327,7 @@ function addPlayer() {
 }
 
 function openEditCoachModal() {
+    if (!isAdmin) return;
     var modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'editCoachModal';
@@ -324,6 +336,7 @@ function openEditCoachModal() {
 }
 
 function saveCoach() {
+    if (!isAdmin) return;
     coach.name = document.getElementById('coachName').value;
     coach.photo = document.getElementById('coachPhoto').value || '👔';
     if (!coach.name) { alert('Preencha o nome!'); return; }
@@ -334,6 +347,7 @@ function saveCoach() {
 }
 
 function openEditPlayerModal(playerId) {
+    if (!isAdmin) return;
     var player = players.find(function(p) { return p.id === playerId; });
     if (!player) return;
     var modal = document.createElement('div');
@@ -344,6 +358,7 @@ function openEditPlayerModal(playerId) {
 }
 
 function savePlayerStats(playerId) {
+    if (!isAdmin) return;
     var player = players.find(function(p) { return p.id === playerId; });
     if (!player) return;
     player.games = parseInt(document.getElementById('editGames').value) || 0;
@@ -360,6 +375,7 @@ function savePlayerStats(playerId) {
 }
 
 function openAddMatchModal() {
+    if (!isAdmin) return;
     var modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'addMatchModal';
@@ -369,6 +385,7 @@ function openAddMatchModal() {
 }
 
 function addMatch() {
+    if (!isAdmin) return;
     var opponent = document.getElementById('matchOpponent').value;
     var date = document.getElementById('matchDate').value;
     var time = document.getElementById('matchTime').value;
@@ -384,6 +401,7 @@ function addMatch() {
 }
 
 function deletePlayer(playerId) {
+    if (!isAdmin) return;
     var player = players.find(function(p) { return p.id === playerId; });
     if (!player) return;
     if (confirm('Tem certeza que deseja excluir ' + player.name + '?')) {
